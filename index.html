@@ -126,10 +126,12 @@
         const tradesRef = database.ref('trades');
         const statsRef = database.ref('stats');
         const liveRef = database.ref('live');
+        const lastUpdateRef = database.ref('last_update');
 
         let livePrices = {};
         let knownSignals = new Set();
         let firstLoad = true;
+        let tradeStatusUpdates = {}; // لتتبع تحديثات الحالة
 
         function playNotificationSound() {
             try {
@@ -162,6 +164,22 @@
             document.getElementById('totalProfit').textContent = '$' + (data.totalProfit || 0).toFixed(2);
         });
 
+        // ═══ تتبع تحديثات حالة الصفقات (ستوب/هدف/إغلاق) ═══
+        lastUpdateRef.on('value', (s) => {
+            const update = s.val();
+            if (!update) return;
+
+            // نحفظ آخر حالة لكل زوج
+            tradeStatusUpdates[update.symbol] = {
+                status: update.status,
+                profit: update.profit,
+                timestamp: update.timestamp
+            };
+
+            console.log('📡 Status Update:', update.symbol, '→', update.status);
+            updateTradeCards(); // تحديث البطاقات فوراً
+        });
+
         // Live Prices
         liveRef.on('value', (s) => {
             const data = s.val();
@@ -178,7 +196,6 @@
                 `;
             });
             document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('ar-EG');
-            // تحديث البطاقات عند وصول سعر جديد
             updateTradeCards();
         });
 
@@ -196,6 +213,8 @@
             container.innerHTML = '';
 
             const entries = Object.entries(currentTrades).reverse();
+            const now = Date.now();
+            const ONE_HOUR = 60 * 60 * 1000;
 
             entries.forEach(([key, trade]) => {
                 const isNew = !knownSignals.has(key);
@@ -204,30 +223,50 @@
                     if (!firstLoad) playNotificationSound();
                 }
 
+                // ═══ فحص تحديث الحالة من last_update ═══
+                const statusUpdate = tradeStatusUpdates[trade.symbol];
+                let finalStatus = trade.status;
+                if (statusUpdate && statusUpdate.timestamp > trade.timestamp) {
+                    finalStatus = statusUpdate.status;
+                }
+
+                // الصفقات القديمة جداً (أكثر من ساعة) تعتبر منتهية
+                const tradeAge = now - trade.timestamp;
+                if (tradeAge > ONE_HOUR && finalStatus === 'signal') {
+                    finalStatus = 'expired';
+                }
+
                 const price = livePrices[trade.symbol] || null;
                 const tp1Hit = isHit(trade.type, price, trade.tp1);
                 const tp2Hit = isHit(trade.type, price, trade.tp2);
                 const tp3Hit = isHit(trade.type, price, trade.tp3);
                 const tp4Hit = isHit(trade.type, price, trade.tp4);
 
-                const timeDiff = Math.abs(Math.round((Date.now() - trade.timestamp) / 60000));
-                const timeText = timeDiff < 1 ? 'الآن' : `منذ ${timeDiff} د`;
+                const timeDiff = Math.abs(Math.round(tradeAge / 60000));
+                let timeText = timeDiff < 1 ? 'الآن' : `منذ ${timeDiff} د`;
+                if (timeDiff >= 60) timeText = `منذ ${Math.floor(timeDiff / 60)} س`;
+
+                const isClosed = ['closed', 'tp', 'sl', 'expired'].includes(finalStatus);
+
+                // تحديد نص الحالة
+                let statusText = '📡 إشارة';
+                let statusColor = '';
+                if (finalStatus === 'tp') { statusText = '🎯 جابت هدف'; statusColor = 'color: var(--accent-green);'; }
+                else if (finalStatus === 'sl') { statusText = '🛑 ستوب'; statusColor = 'color: var(--accent-red);'; }
+                else if (finalStatus === 'closed') { statusText = '🏁 مغلقة'; statusColor = 'color: var(--text-muted);'; }
+                else if (finalStatus === 'expired') { statusText = '⏱️ انتهت'; statusColor = 'color: var(--text-muted);'; }
+                else if (finalStatus === 'open') { statusText = '🟢 جارية'; }
 
                 const card = document.createElement('div');
-                // إذا كانت الصفقة مغلقة (من بيانات الميتاتريدر مستقبلا أو بمرور وقت طويل)
-                const isClosed = trade.status === 'closed' || trade.status === 'tp' || trade.status === 'sl';
-
                 card.className = `trade-card ${isNew && !firstLoad ? 'new-signal' : ''} ${isClosed ? 'closed' : ''}`;
-                card.onclick = () => openModal(trade);
+                card.onclick = () => openModal(trade, finalStatus);
 
                 card.innerHTML = `
                     <div class="card-top">
                         <div class="symbol-info">
                             <h3>${trade.symbol}</h3>
                             <div class="badge-row">
-                                <span class="badge" style="${isClosed ? 'color:var(--text-muted)' : ''}">
-                                    ${isClosed ? '🏁 منتهية' : (trade.status === 'signal' ? '📡 إشارة' : '🟢 جارية')}
-                                </span>
+                                <span class="badge" style="${statusColor}">${statusText}</span>
                                 <span class="badge">📊 ${trade.confluence}/5</span>
                                 <span class="badge">⏰ ${timeText}</span>
                             </div>
@@ -250,7 +289,9 @@
             firstLoad = false;
         }
 
-        function openModal(trade) {
+        function openModal(trade, finalStatus = null) {
+            const status = finalStatus || trade.status;
+
             document.getElementById('modalSymbol').textContent = trade.symbol;
             const typeEl = document.getElementById('modalType');
             typeEl.textContent = trade.type === 'BUY' ? 'شراء' : 'بيع';
@@ -258,11 +299,22 @@
 
             document.getElementById('modalConfluence').textContent = (trade.confluence || '?') + '/5';
             document.getElementById('modalTFs').textContent = trade.agreeTFs || 'N/A';
-            document.getElementById('modalStatus').textContent = trade.status === 'tp' ? '🎯 جابت هدف' : (trade.status === 'sl' ? '🛑 ضربت ستوب' : '🟢 جارية');
+
+            // تحديد نص الحالة بناءً على الحالة الفعلية
+            let statusText = '📡 إشارة';
+            if (status === 'tp') statusText = '🎯 جابت هدف!';
+            else if (status === 'sl') statusText = '🛑 ضربت ستوب';
+            else if (status === 'open') statusText = '🟢 جارية';
+            else if (status === 'closed') statusText = '🏁 مغلقة';
+            else if (status === 'expired') statusText = '⏱️ انتهت';
+
+            document.getElementById('modalStatus').textContent = statusText;
             document.getElementById('modalMarket').textContent = trade.marketStatus === 'OPEN' ? '🟢 مفتوح' : '🔴 مغلق';
 
             const timeDiff = Math.abs(Math.round((Date.now() - trade.timestamp) / 60000));
-            document.getElementById('modalTime').textContent = timeDiff < 1 ? 'الآن' : 'منذ ' + timeDiff + ' دقيقة';
+            let timeText = timeDiff < 1 ? 'الآن' : 'منذ ' + timeDiff + ' دقيقة';
+            if (timeDiff >= 60) timeText = 'منذ ' + Math.floor(timeDiff / 60) + ' ساعة';
+            document.getElementById('modalTime').textContent = timeText;
 
             document.getElementById('modalEntry').textContent = trade.entry;
             document.getElementById('modalSL').textContent = trade.sl;
