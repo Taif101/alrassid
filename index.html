@@ -11,6 +11,7 @@
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
@@ -27,6 +28,7 @@
                     </div>
                 </div>
                 <div class="status-indicator">
+                    <div class="live-pulse"></div>
                     <span id="lastUpdate" style="font-size: 12px; opacity: 0.6;">--:--:--</span>
                 </div>
             </div>
@@ -34,33 +36,61 @@
     </div>
 
     <div class="app-container">
-        <!-- Stats -->
-        <div class="stats-grid">
-            <div class="stat-box">
-                <div class="stat-val" id="totalTrades">0</div>
-                <div class="stat-label">الصفقات</div>
+        <!-- Stats Dashboard -->
+        <div class="stats-dashboard">
+            <div class="stat-box stat-primary">
+                <div class="stat-icon">📊</div>
+                <div class="stat-content">
+                    <div class="stat-val" id="totalTrades">0</div>
+                    <div class="stat-label">الصفقات</div>
+                </div>
             </div>
-            <div class="stat-box">
-                <div class="stat-val" style="color: var(--accent-green)" id="winRate">0%</div>
-                <div class="stat-label">النجاح</div>
+            <div class="stat-box stat-success">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-content">
+                    <div class="stat-val" id="winRate">0%</div>
+                    <div class="stat-label">نسبة النجاح</div>
+                </div>
             </div>
-            <div class="stat-box">
-                <div class="stat-val" id="totalProfit">$0</div>
-                <div class="stat-label">الأرباح</div>
+            <div class="stat-box stat-gold">
+                <div class="stat-icon">💰</div>
+                <div class="stat-content">
+                    <div class="stat-val" id="totalProfit">$0</div>
+                    <div class="stat-label">الأرباح</div>
+                </div>
             </div>
         </div>
 
-        <!-- Live Prices Slider or Grid -->
-        <h2 class="section-head">📈 الأسعار الحية</h2>
-        <div id="livePrices"
-            style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 24px;">
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+            <button class="filter-tab active" data-filter="all">الكل</button>
+            <button class="filter-tab" data-filter="active">🟢 نشطة</button>
+            <button class="filter-tab" data-filter="tp">🎯 ناجحة</button>
+            <button class="filter-tab" data-filter="sl">🛑 خاسرة</button>
+        </div>
+
+        <!-- Live Prices Slider -->
+        <div class="section-header">
+            <h2 class="section-head">📈 الأسعار الحية</h2>
+            <span class="live-indicator">مباشر</span>
+        </div>
+        <div id="livePrices" class="live-prices-grid">
             <!-- Live prices here -->
         </div>
 
-        <!-- Live Signals -->
-        <h2 class="section-head">🚀 الإشارات المباشرة</h2>
-        <div id="activeTrades">
-            <div style="text-align: center; padding: 40px; opacity: 0.5;">📡 في انتظار الإشارات...</div>
+        <!-- Active Trades Section -->
+        <div class="section-header">
+            <h2 class="section-head">🚀 تتبع الصفقات</h2>
+            <div class="trades-counter">
+                <span id="activeCount">0</span> نشطة
+            </div>
+        </div>
+
+        <div id="activeTrades" class="trades-container">
+            <div class="loading-state">
+                <div class="loading-spinner"></div>
+                <p>📡 في انتظار الإشارات...</p>
+            </div>
         </div>
     </div>
 
@@ -68,50 +98,85 @@
     <div id="tradeModal" class="modal-overlay">
         <div class="modal-sheet">
             <div class="handle"></div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 id="modalSymbol" style="font-size: 28px; font-weight: 800;">SYMBOL</h2>
-                <div id="modalType" class="type-badge">BUY</div>
+            <div class="modal-header">
+                <div class="modal-symbol-area">
+                    <h2 id="modalSymbol">SYMBOL</h2>
+                    <div id="modalType" class="type-badge">BUY</div>
+                </div>
+                <div id="modalStatusBadge" class="status-badge-large">📡 إشارة</div>
             </div>
 
-            <div class="modal-row"><span class="modal-label">القوة</span><span class="modal-val"
-                    id="modalConfluence">--</span></div>
-            <div class="modal-row"><span class="modal-label">التوافق</span><span class="modal-val"
-                    id="modalTFs">--</span></div>
-            <div class="modal-row"><span class="modal-label">الحالة</span><span class="modal-val"
-                    id="modalStatus">--</span></div>
-            <div class="modal-row"><span class="modal-label">السوق</span><span class="modal-val"
-                    id="modalMarket">--</span></div>
-            <div class="modal-row"><span class="modal-label">الوقت</span><span class="modal-val"
-                    id="modalTime">--</span></div>
-
-            <div class="price-box" style="border-right: 4px solid var(--accent-gold);">
-                <span class="modal-label">سعر الدخول</span>
-                <span id="modalEntry"
-                    style="font-size: 24px; font-weight: 800; color: var(--accent-gold);">0.0000</span>
-            </div>
-
-            <div class="price-box" style="border-right: 4px solid var(--accent-red);">
-                <span class="modal-label">وقف الخسارة</span>
-                <span id="modalSL" style="font-size: 24px; font-weight: 800; color: var(--accent-red);">0.0000</span>
-            </div>
-
-            <div style="margin-top: 20px;">
-                <p style="font-size: 14px; font-weight: 700; color: var(--accent-green); margin-bottom: 12px;">🎯
-                    الأهداف</p>
-                <div class="levels-grid">
-                    <div class="level-item"><span class="level-label">TP1</span><span class="level-val"
-                            id="modalTP1">--</span></div>
-                    <div class="level-item"><span class="level-label">TP2</span><span class="level-val"
-                            id="modalTP2">--</span></div>
-                    <div class="level-item"><span class="level-label">TP3</span><span class="level-val"
-                            id="modalTP3">--</span></div>
-                    <div class="level-item"><span class="level-label">TP4</span><span class="level-val"
-                            id="modalTP4">--</span></div>
+            <!-- Trade Info Grid -->
+            <div class="modal-info-grid">
+                <div class="info-item">
+                    <span class="info-icon">💪</span>
+                    <span class="info-label">القوة</span>
+                    <span class="info-val" id="modalConfluence">--</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-icon">📊</span>
+                    <span class="info-label">التوافق</span>
+                    <span class="info-val" id="modalTFs">--</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-icon">🏦</span>
+                    <span class="info-label">السوق</span>
+                    <span class="info-val" id="modalMarket">--</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-icon">⏰</span>
+                    <span class="info-label">الوقت</span>
+                    <span class="info-val" id="modalTime">--</span>
                 </div>
             </div>
 
-            <button onclick="closeModal()"
-                style="width: 100%; padding: 16px; border-radius: 16px; border: none; background: var(--bg-inner); color: var(--text-main); font-weight: 700; margin-top: 24px;">إغلاق</button>
+            <!-- Price Levels -->
+            <div class="modal-prices">
+                <div class="price-level entry-level">
+                    <div class="price-label">📍 سعر الدخول</div>
+                    <div class="price-value" id="modalEntry">0.0000</div>
+                </div>
+                <div class="price-level sl-level">
+                    <div class="price-label">🛑 وقف الخسارة</div>
+                    <div class="price-value" id="modalSL">0.0000</div>
+                </div>
+            </div>
+
+            <!-- Targets Grid -->
+            <div class="targets-section">
+                <div class="targets-header">🎯 الأهداف</div>
+                <div class="targets-grid">
+                    <div class="target-item" id="target1">
+                        <span class="target-label">TP1</span>
+                        <span class="target-val" id="modalTP1">--</span>
+                        <span class="target-status" id="tp1Status"></span>
+                    </div>
+                    <div class="target-item" id="target2">
+                        <span class="target-label">TP2</span>
+                        <span class="target-val" id="modalTP2">--</span>
+                        <span class="target-status" id="tp2Status"></span>
+                    </div>
+                    <div class="target-item" id="target3">
+                        <span class="target-label">TP3</span>
+                        <span class="target-val" id="modalTP3">--</span>
+                        <span class="target-status" id="tp3Status"></span>
+                    </div>
+                    <div class="target-item" id="target4">
+                        <span class="target-label">TP4</span>
+                        <span class="target-val" id="modalTP4">--</span>
+                        <span class="target-status" id="tp4Status"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Price -->
+            <div class="current-price-section">
+                <div class="current-price-label">💹 السعر الحالي</div>
+                <div class="current-price-val" id="modalCurrentPrice">--</div>
+                <div class="price-change" id="modalPriceChange"></div>
+            </div>
+
+            <button onclick="closeModal()" class="close-modal-btn">إغلاق</button>
         </div>
     </div>
 
@@ -131,7 +196,42 @@
         let livePrices = {};
         let knownSignals = new Set();
         let firstLoad = true;
-        let tradeStatusUpdates = {}; // لتتبع تحديثات الحالة
+        let tradeStatusUpdates = {};
+        let currentFilter = 'all';
+
+        // ═══ حذف الصفقات المنتهية بعد ساعة ═══
+        const ONE_HOUR = 60 * 60 * 1000;
+
+        function cleanupOldTrades() {
+            const now = Date.now();
+            tradesRef.once('value', (snapshot) => {
+                const trades = snapshot.val();
+                if (!trades) return;
+
+                Object.entries(trades).forEach(([key, trade]) => {
+                    const tradeAge = now - trade.timestamp;
+                    const status = trade.status;
+
+                    // حذف الصفقات المنتهية (tp, sl, closed, expired) التي مر عليها أكثر من ساعة
+                    if (['tp', 'sl', 'closed', 'expired'].includes(status) && tradeAge > ONE_HOUR) {
+                        tradesRef.child(key).remove()
+                            .then(() => console.log('🗑️ Cleaned up old trade:', trade.symbol))
+                            .catch(err => console.error('Error removing trade:', err));
+                    }
+                    // أيضاً حذف الإشارات القديمة جداً (أكثر من ساعتين) حتى لو لم تنتهي
+                    if (tradeAge > ONE_HOUR * 2) {
+                        tradesRef.child(key).remove()
+                            .then(() => console.log('🗑️ Cleaned up stale signal:', trade.symbol))
+                            .catch(err => console.error('Error removing trade:', err));
+                    }
+                });
+            });
+        }
+
+        // تشغيل التنظيف كل 5 دقائق
+        setInterval(cleanupOldTrades, 5 * 60 * 1000);
+        // تنظيف عند البداية
+        setTimeout(cleanupOldTrades, 5000);
 
         function playNotificationSound() {
             try {
@@ -140,36 +240,80 @@
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.connect(gain); gain.connect(ctx.destination);
-                osc.frequency.value = 800; gain.gain.value = 0.1;
-                osc.start(); osc.stop(ctx.currentTime + 0.1);
+                osc.frequency.value = 880;
+                gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.3);
             } catch (e) { console.log('Audio error:', e); }
         }
 
         // وظيفة فحص إذا تم ضرب الهدف
         function isHit(type, currentPrice, targetPrice) {
-            if (!currentPrice || !targetPrice || targetPrice === '-') return false;
+            if (!currentPrice || !targetPrice || targetPrice === '-' || targetPrice === '') return false;
             const cur = parseFloat(currentPrice);
             const tar = parseFloat(targetPrice);
+            if (isNaN(cur) || isNaN(tar)) return false;
             if (type === 'BUY') return cur >= tar;
             if (type === 'SELL') return cur <= tar;
             return false;
         }
 
+        // فحص إذا ضرب ستوب
+        function isSLHit(type, currentPrice, slPrice) {
+            if (!currentPrice || !slPrice) return false;
+            const cur = parseFloat(currentPrice);
+            const sl = parseFloat(slPrice);
+            if (isNaN(cur) || isNaN(sl)) return false;
+            if (type === 'BUY') return cur <= sl;
+            if (type === 'SELL') return cur >= sl;
+            return false;
+        }
+
+        // Filter Tabs
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', function () {
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                currentFilter = this.dataset.filter;
+                updateTradeCards();
+            });
+        });
+
         // Stats Updates
         statsRef.on('value', (s) => {
             const data = s.val() || {};
-            document.getElementById('totalTrades').textContent = data.total || 0;
+            animateNumber('totalTrades', data.total || 0);
             const winRate = data.total > 0 ? Math.round((data.wins / data.total) * 100) : 0;
             document.getElementById('winRate').textContent = winRate + '%';
             document.getElementById('totalProfit').textContent = '$' + (data.totalProfit || 0).toFixed(2);
         });
+
+        function animateNumber(elementId, finalValue) {
+            const el = document.getElementById(elementId);
+            const currentValue = parseInt(el.textContent) || 0;
+            if (currentValue === finalValue) return;
+
+            const duration = 500;
+            const steps = 20;
+            const increment = (finalValue - currentValue) / steps;
+            let step = 0;
+
+            const interval = setInterval(() => {
+                step++;
+                el.textContent = Math.round(currentValue + (increment * step));
+                if (step >= steps) {
+                    el.textContent = finalValue;
+                    clearInterval(interval);
+                }
+            }, duration / steps);
+        }
 
         // ═══ تتبع تحديثات حالة الصفقات (ستوب/هدف/إغلاق) ═══
         lastUpdateRef.on('value', (s) => {
             const update = s.val();
             if (!update) return;
 
-            // نحفظ آخر حالة لكل زوج
             tradeStatusUpdates[update.symbol] = {
                 status: update.status,
                 profit: update.profit,
@@ -177,7 +321,7 @@
             };
 
             console.log('📡 Status Update:', update.symbol, '→', update.status);
-            updateTradeCards(); // تحديث البطاقات فوراً
+            updateTradeCards();
         });
 
         // Live Prices
@@ -187,40 +331,61 @@
             livePrices = data.prices || {};
             const container = document.getElementById('livePrices');
             container.innerHTML = '';
+
             Object.entries(livePrices).forEach(([sym, price]) => {
-                container.innerHTML += `
-                    <div class="stat-box" style="padding: 10px;">
-                        <div style="font-size: 11px; color: var(--text-muted);">${sym}</div>
-                        <div style="font-size: 16px; font-weight: 800; font-family: 'Outfit';">${price}</div>
-                    </div>
+                const priceBox = document.createElement('div');
+                priceBox.className = 'price-box';
+                priceBox.innerHTML = `
+                    <div class="price-symbol">${sym}</div>
+                    <div class="price-value">${price}</div>
                 `;
+                container.appendChild(priceBox);
             });
+
             document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('ar-EG');
             updateTradeCards();
         });
 
         let currentTrades = {};
 
-        // Trade Cards Logic
-        tradesRef.orderByChild('timestamp').limitToLast(20).on('value', (snapshot) => {
+        // Trade Cards Logic - ترتيب حسب الوقت (الأحدث أولاً)
+        tradesRef.orderByChild('timestamp').limitToLast(50).on('value', (snapshot) => {
             currentTrades = snapshot.val() || {};
             updateTradeCards();
         });
 
         function updateTradeCards() {
             const container = document.getElementById('activeTrades');
-            if (!currentTrades) return;
-            container.innerHTML = '';
+            if (!currentTrades || Object.keys(currentTrades).length === 0) {
+                container.innerHTML = `
+                    <div class="loading-state">
+                        <div class="empty-icon">📡</div>
+                        <p>في انتظار الإشارات...</p>
+                    </div>
+                `;
+                document.getElementById('activeCount').textContent = '0';
+                return;
+            }
 
-            const entries = Object.entries(currentTrades).reverse();
+            container.innerHTML = '';
             const now = Date.now();
-            const ONE_HOUR = 60 * 60 * 1000;
+
+            // ═══ ترتيب: الأحدث أولاً ═══
+            const entries = Object.entries(currentTrades)
+                .sort((a, b) => b[1].timestamp - a[1].timestamp);
+
+            let activeCount = 0;
+            let displayedCount = 0;
 
             entries.forEach(([key, trade]) => {
                 const isNew = !knownSignals.has(key);
                 if (isNew) {
                     knownSignals.add(key);
-                    if (!firstLoad) playNotificationSound();
+                    if (!firstLoad) {
+                        playNotificationSound();
+                        // Vibration API for mobile
+                        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                    }
                 }
 
                 // ═══ فحص تحديث الحالة من last_update ═══
@@ -230,85 +395,175 @@
                     finalStatus = statusUpdate.status;
                 }
 
-                // الصفقات القديمة جداً (أكثر من ساعة) تعتبر منتهية
-                const tradeAge = now - trade.timestamp;
-                if (tradeAge > ONE_HOUR && finalStatus === 'signal') {
-                    finalStatus = 'expired';
-                }
-
+                // فحص الأهداف والستوب بناءً على السعر الحالي
                 const price = livePrices[trade.symbol] || null;
                 const tp1Hit = isHit(trade.type, price, trade.tp1);
                 const tp2Hit = isHit(trade.type, price, trade.tp2);
                 const tp3Hit = isHit(trade.type, price, trade.tp3);
                 const tp4Hit = isHit(trade.type, price, trade.tp4);
+                const slHit = isSLHit(trade.type, price, trade.sl);
+
+                // تحديث الحالة بناءً على السعر الحالي
+                if (finalStatus === 'signal' || finalStatus === 'open') {
+                    if (slHit) finalStatus = 'sl';
+                    else if (tp1Hit) finalStatus = 'tp';
+                }
+
+                const tradeAge = now - trade.timestamp;
+
+                // ═══ لا نعرض الصفقات المنتهية القديمة (> 1 ساعة) ═══
+                const isClosed = ['closed', 'tp', 'sl', 'expired'].includes(finalStatus);
+                if (isClosed && tradeAge > ONE_HOUR) {
+                    return; // skip this trade
+                }
+
+                // Filter logic
+                if (currentFilter === 'active' && isClosed) return;
+                if (currentFilter === 'tp' && finalStatus !== 'tp') return;
+                if (currentFilter === 'sl' && finalStatus !== 'sl') return;
+
+                if (!isClosed) activeCount++;
+                displayedCount++;
 
                 const timeDiff = Math.abs(Math.round(tradeAge / 60000));
                 let timeText = timeDiff < 1 ? 'الآن' : `منذ ${timeDiff} د`;
                 if (timeDiff >= 60) timeText = `منذ ${Math.floor(timeDiff / 60)} س`;
 
-                const isClosed = ['closed', 'tp', 'sl', 'expired'].includes(finalStatus);
+                // تحديد نص وستايل الحالة
+                let statusConfig = getStatusConfig(finalStatus);
 
-                // تحديد نص الحالة
-                let statusText = '📡 إشارة';
-                let statusColor = '';
-                if (finalStatus === 'tp') { statusText = '🎯 جابت هدف'; statusColor = 'color: var(--accent-green);'; }
-                else if (finalStatus === 'sl') { statusText = '🛑 ستوب'; statusColor = 'color: var(--accent-red);'; }
-                else if (finalStatus === 'closed') { statusText = '🏁 مغلقة'; statusColor = 'color: var(--text-muted);'; }
-                else if (finalStatus === 'expired') { statusText = '⏱️ انتهت'; statusColor = 'color: var(--text-muted);'; }
-                else if (finalStatus === 'open') { statusText = '🟢 جارية'; }
+                // حساب التغير في السعر
+                let priceChange = '';
+                let priceChangeClass = '';
+                if (price && trade.entry) {
+                    const entryPrice = parseFloat(trade.entry);
+                    const currentPrice = parseFloat(price);
+                    const diff = currentPrice - entryPrice;
+                    const pips = Math.abs(diff * 10000).toFixed(1);
+                    if (trade.type === 'BUY') {
+                        priceChange = diff >= 0 ? `+${pips} نقطة` : `-${pips} نقطة`;
+                        priceChangeClass = diff >= 0 ? 'positive' : 'negative';
+                    } else {
+                        priceChange = diff <= 0 ? `+${Math.abs(pips)} نقطة` : `-${Math.abs(pips)} نقطة`;
+                        priceChangeClass = diff <= 0 ? 'positive' : 'negative';
+                    }
+                }
 
                 const card = document.createElement('div');
-                card.className = `trade-card ${isNew && !firstLoad ? 'new-signal' : ''} ${isClosed ? 'closed' : ''}`;
-                card.onclick = () => openModal(trade, finalStatus);
+                card.className = `trade-card ${isNew && !firstLoad ? 'new-signal' : ''} ${isClosed ? 'closed' : ''} status-${finalStatus}`;
+                card.onclick = () => openModal(trade, finalStatus, price);
 
                 card.innerHTML = `
-                    <div class="card-top">
-                        <div class="symbol-info">
-                            <h3>${trade.symbol}</h3>
-                            <div class="badge-row">
-                                <span class="badge" style="${statusColor}">${statusText}</span>
-                                <span class="badge">📊 ${trade.confluence}/5</span>
-                                <span class="badge">⏰ ${timeText}</span>
+                    <div class="card-header">
+                        <div class="symbol-section">
+                            <h3 class="symbol-name">${trade.symbol}</h3>
+                            <div class="symbol-meta">
+                                <span class="meta-badge status-badge ${statusConfig.class}">${statusConfig.icon} ${statusConfig.text}</span>
+                                <span class="meta-badge time-badge">⏰ ${timeText}</span>
                             </div>
                         </div>
-                        <div class="type-badge ${trade.type === 'BUY' ? 'type-buy' : 'type-sell'}" style="${isClosed ? 'opacity:0.5' : ''}">
-                            ${trade.type === 'BUY' ? 'شراء' : 'بيع'}
+                        <div class="trade-type ${trade.type === 'BUY' ? 'type-buy' : 'type-sell'}">
+                            ${trade.type === 'BUY' ? '📈 شراء' : '📉 بيع'}
                         </div>
                     </div>
-                    <div class="levels-grid">
-                        <div class="level-item"><span class="level-label">الدخول</span><span class="level-val val-entry">${trade.entry}</span></div>
-                        <div class="level-item"><span class="level-label">الستوب</span><span class="level-val val-sl">${trade.sl}</span></div>
-                        <div class="level-item ${tp1Hit ? 'hit' : ''}"><span class="level-label">TP1 ${tp1Hit ? '✅' : ''}</span><span class="level-val val-tp">${trade.tp1 || '-'}</span></div>
-                        <div class="level-item ${tp2Hit ? 'hit' : ''}"><span class="level-label">TP2 ${tp2Hit ? '✅' : ''}</span><span class="level-val val-tp">${trade.tp2 || '-'}</span></div>
-                        <div class="level-item ${tp3Hit ? 'hit' : ''}"><span class="level-label">TP3 ${tp3Hit ? '✅' : ''}</span><span class="level-val val-tp">${trade.tp3 || '-'}</span></div>
-                        <div class="level-item ${tp4Hit ? 'hit' : ''}"><span class="level-label">TP4 ${tp4Hit ? '✅' : ''}</span><span class="level-val val-tp">${trade.tp4 || '-'}</span></div>
+                    
+                    <div class="card-body">
+                        <div class="price-info-row">
+                            <div class="price-info">
+                                <span class="label">الدخول</span>
+                                <span class="value entry">${trade.entry}</span>
+                            </div>
+                            <div class="price-info">
+                                <span class="label">الستوب</span>
+                                <span class="value sl ${slHit ? 'hit' : ''}">${trade.sl}</span>
+                            </div>
+                            ${price ? `
+                            <div class="price-info current">
+                                <span class="label">الحالي</span>
+                                <span class="value">${price}</span>
+                                <span class="change ${priceChangeClass}">${priceChange}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="targets-row">
+                            <div class="target ${tp1Hit ? 'hit' : ''}">
+                                <span class="tp-label">TP1</span>
+                                <span class="tp-value">${trade.tp1 || '-'}</span>
+                                ${tp1Hit ? '<span class="hit-badge">✓</span>' : ''}
+                            </div>
+                            <div class="target ${tp2Hit ? 'hit' : ''}">
+                                <span class="tp-label">TP2</span>
+                                <span class="tp-value">${trade.tp2 || '-'}</span>
+                                ${tp2Hit ? '<span class="hit-badge">✓</span>' : ''}
+                            </div>
+                            <div class="target ${tp3Hit ? 'hit' : ''}">
+                                <span class="tp-label">TP3</span>
+                                <span class="tp-value">${trade.tp3 || '-'}</span>
+                                ${tp3Hit ? '<span class="hit-badge">✓</span>' : ''}
+                            </div>
+                            <div class="target ${tp4Hit ? 'hit' : ''}">
+                                <span class="tp-label">TP4</span>
+                                <span class="tp-value">${trade.tp4 || '-'}</span>
+                                ${tp4Hit ? '<span class="hit-badge">✓</span>' : ''}
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer">
+                            <div class="confluence-meter">
+                                <span class="confluence-label">قوة التوافق</span>
+                                <div class="confluence-bar">
+                                    ${generateConfluenceBar(trade.confluence || 0)}
+                                </div>
+                                <span class="confluence-val">${trade.confluence || 0}/5</span>
+                            </div>
+                        </div>
                     </div>
                 `;
                 container.appendChild(card);
             });
+
+            document.getElementById('activeCount').textContent = activeCount;
             firstLoad = false;
         }
 
-        function openModal(trade, finalStatus = null) {
+        function getStatusConfig(status) {
+            const configs = {
+                'signal': { icon: '📡', text: 'إشارة', class: 'signal' },
+                'open': { icon: '🟢', text: 'جارية', class: 'open' },
+                'tp': { icon: '🎯', text: 'جابت هدف', class: 'tp' },
+                'sl': { icon: '🛑', text: 'ستوب', class: 'sl' },
+                'closed': { icon: '🏁', text: 'مغلقة', class: 'closed' },
+                'expired': { icon: '⏱️', text: 'انتهت', class: 'expired' }
+            };
+            return configs[status] || configs['signal'];
+        }
+
+        function generateConfluenceBar(confluence) {
+            let bars = '';
+            for (let i = 1; i <= 5; i++) {
+                const active = i <= confluence ? 'active' : '';
+                bars += `<div class="bar ${active}"></div>`;
+            }
+            return bars;
+        }
+
+        function openModal(trade, finalStatus = null, currentPrice = null) {
             const status = finalStatus || trade.status;
+            const price = currentPrice || livePrices[trade.symbol];
 
             document.getElementById('modalSymbol').textContent = trade.symbol;
             const typeEl = document.getElementById('modalType');
-            typeEl.textContent = trade.type === 'BUY' ? 'شراء' : 'بيع';
+            typeEl.textContent = trade.type === 'BUY' ? '📈 شراء' : '📉 بيع';
             typeEl.className = `type-badge ${trade.type === 'BUY' ? 'type-buy' : 'type-sell'}`;
+
+            // Status badge
+            const statusConfig = getStatusConfig(status);
+            document.getElementById('modalStatusBadge').textContent = statusConfig.icon + ' ' + statusConfig.text;
+            document.getElementById('modalStatusBadge').className = `status-badge-large ${statusConfig.class}`;
 
             document.getElementById('modalConfluence').textContent = (trade.confluence || '?') + '/5';
             document.getElementById('modalTFs').textContent = trade.agreeTFs || 'N/A';
-
-            // تحديد نص الحالة بناءً على الحالة الفعلية
-            let statusText = '📡 إشارة';
-            if (status === 'tp') statusText = '🎯 جابت هدف!';
-            else if (status === 'sl') statusText = '🛑 ضربت ستوب';
-            else if (status === 'open') statusText = '🟢 جارية';
-            else if (status === 'closed') statusText = '🏁 مغلقة';
-            else if (status === 'expired') statusText = '⏱️ انتهت';
-
-            document.getElementById('modalStatus').textContent = statusText;
             document.getElementById('modalMarket').textContent = trade.marketStatus === 'OPEN' ? '🟢 مفتوح' : '🔴 مغلق';
 
             const timeDiff = Math.abs(Math.round((Date.now() - trade.timestamp) / 60000));
@@ -318,10 +573,53 @@
 
             document.getElementById('modalEntry').textContent = trade.entry;
             document.getElementById('modalSL').textContent = trade.sl;
-            document.getElementById('modalTP1').textContent = trade.tp1 || '-';
-            document.getElementById('modalTP2').textContent = trade.tp2 || '-';
-            document.getElementById('modalTP3').textContent = trade.tp3 || '-';
-            document.getElementById('modalTP4').textContent = trade.tp4 || '-';
+
+            // TPs with hit status
+            const tp1Val = trade.tp1 || '-';
+            const tp2Val = trade.tp2 || '-';
+            const tp3Val = trade.tp3 || '-';
+            const tp4Val = trade.tp4 || '-';
+
+            document.getElementById('modalTP1').textContent = tp1Val;
+            document.getElementById('modalTP2').textContent = tp2Val;
+            document.getElementById('modalTP3').textContent = tp3Val;
+            document.getElementById('modalTP4').textContent = tp4Val;
+
+            // Check hits
+            const tp1Hit = isHit(trade.type, price, tp1Val);
+            const tp2Hit = isHit(trade.type, price, tp2Val);
+            const tp3Hit = isHit(trade.type, price, tp3Val);
+            const tp4Hit = isHit(trade.type, price, tp4Val);
+
+            document.getElementById('tp1Status').textContent = tp1Hit ? '✅' : '';
+            document.getElementById('tp2Status').textContent = tp2Hit ? '✅' : '';
+            document.getElementById('tp3Status').textContent = tp3Hit ? '✅' : '';
+            document.getElementById('tp4Status').textContent = tp4Hit ? '✅' : '';
+
+            document.getElementById('target1').className = `target-item ${tp1Hit ? 'hit' : ''}`;
+            document.getElementById('target2').className = `target-item ${tp2Hit ? 'hit' : ''}`;
+            document.getElementById('target3').className = `target-item ${tp3Hit ? 'hit' : ''}`;
+            document.getElementById('target4').className = `target-item ${tp4Hit ? 'hit' : ''}`;
+
+            // Current price and change
+            document.getElementById('modalCurrentPrice').textContent = price || '--';
+            if (price && trade.entry) {
+                const entryPrice = parseFloat(trade.entry);
+                const cur = parseFloat(price);
+                const diff = cur - entryPrice;
+                const pips = Math.abs(diff * 10000).toFixed(1);
+                let changeText = '';
+                let changeClass = '';
+                if (trade.type === 'BUY') {
+                    changeText = diff >= 0 ? `+${pips} نقطة` : `-${pips} نقطة`;
+                    changeClass = diff >= 0 ? 'positive' : 'negative';
+                } else {
+                    changeText = diff <= 0 ? `+${Math.abs(pips)} نقطة` : `-${Math.abs(pips)} نقطة`;
+                    changeClass = diff <= 0 ? 'positive' : 'negative';
+                }
+                document.getElementById('modalPriceChange').textContent = changeText;
+                document.getElementById('modalPriceChange').className = `price-change ${changeClass}`;
+            }
 
             document.getElementById('tradeModal').classList.add('active');
         }
@@ -330,9 +628,15 @@
             document.getElementById('tradeModal').classList.remove('active');
         }
 
-        window.onclick = (e) => {
-            if (e.target == document.getElementById('tradeModal')) closeModal();
-        }
+        // Close modal on overlay click
+        document.getElementById('tradeModal').addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal-overlay')) closeModal();
+        });
+
+        // Keyboard escape to close
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
     </script>
 </body>
 
