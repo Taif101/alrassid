@@ -1,15 +1,12 @@
 {
-  "name": "الراصد - إشارات تداول مباشرة",
+  "name": "الراصد - Al Rassed",
   "short_name": "الراصد",
-  "description": "إشارات تداول فوركس مباشرة ومجانية",
-  "start_url": "/index.html",
+  "description": "نظام رصد إشارات التداول الاحترافي",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#0a0e17",
   "theme_color": "#0a0e17",
-  "orientation": "portrait-primary",
-  "lang": "ar",
-  "dir": "rtl",
-  "categories": ["finance", "business"],
+  "orientation": "portrait",
   "icons": [
     {
       "src": "icon-192.png",
@@ -20,8 +17,8 @@
     {
       "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
-  ]
+  ],
+  "lang": "ar"
 }
