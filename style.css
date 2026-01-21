@@ -22,7 +22,8 @@
     -webkit-tap-highlight-color: transparent;
 }
 
-html, body {
+html,
+body {
     background-color: var(--bg-deep);
     color: var(--text-main);
     font-family: 'Tajawal', sans-serif;
@@ -164,8 +165,17 @@ html, body {
     font-size: 14px;
 }
 
-.type-buy { color: var(--accent-green); border: 1px solid var(--accent-green); background: rgba(0, 242, 152, 0.1); }
-.type-sell { color: var(--accent-red); border: 1px solid var(--accent-red); background: rgba(255, 59, 48, 0.1); }
+.type-buy {
+    color: var(--accent-green);
+    border: 1px solid var(--accent-green);
+    background: rgba(0, 242, 152, 0.1);
+}
+
+.type-sell {
+    color: var(--accent-red);
+    border: 1px solid var(--accent-red);
+    background: rgba(255, 59, 48, 0.1);
+}
 
 /* Grid of Levels */
 .levels-grid {
@@ -195,21 +205,63 @@ html, body {
     font-family: 'Outfit', sans-serif;
 }
 
-.val-entry { color: var(--accent-gold); }
-.val-sl { color: var(--accent-red); }
-.val-tp { color: var(--accent-green); }
+.val-entry {
+    color: var(--accent-gold);
+}
+
+.val-sl {
+    color: var(--accent-red);
+}
+
+.val-tp {
+    color: var(--accent-green);
+    transition: all 0.3s ease;
+}
+
+/* الهدف المحقق */
+.level-item.hit {
+    background: rgba(0, 242, 152, 0.15);
+    border-color: var(--accent-green);
+    animation: glow 1.5s infinite alternate;
+}
+
+@keyframes glow {
+    from {
+        box-shadow: 0 0 5px rgba(0, 242, 152, 0.2);
+    }
+
+    to {
+        box-shadow: 0 0 15px rgba(0, 242, 152, 0.5);
+    }
+}
+
+/* الصفقة المغلقة */
+.trade-card.closed {
+    opacity: 0.6;
+    filter: grayscale(0.5);
+    border-style: dashed;
+}
+
+.trade-card.closed .type-badge {
+    background: var(--text-muted) !important;
+    color: white !important;
+    border-color: var(--border) !important;
+}
 
 /* Modal Bottom Sheet */
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.8);
+    background: rgba(0, 0, 0, 0.8);
     display: none;
     z-index: 1000;
-    align-items: flex-end; /* لجعله مثل تطبيق الأيفون */
+    align-items: flex-end;
+    /* لجعله مثل تطبيق الأيفون */
 }
 
-.modal-overlay.active { display: flex; }
+.modal-overlay.active {
+    display: flex;
+}
 
 .modal-sheet {
     background: var(--bg-card);
@@ -223,8 +275,13 @@ html, body {
 }
 
 @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
 }
 
 .handle {
@@ -242,8 +299,13 @@ html, body {
     border-bottom: 1px solid var(--border);
 }
 
-.modal-label { color: var(--text-muted); }
-.modal-val { font-weight: 700; }
+.modal-label {
+    color: var(--text-muted);
+}
+
+.modal-val {
+    font-weight: 700;
+}
 
 .price-box {
     background: var(--bg-inner);
@@ -257,12 +319,27 @@ html, body {
 
 /* Tablets & Desktop */
 @media (min-width: 768px) {
-    .stats-grid { grid-template-columns: repeat(3, 1fr); }
-    .levels-grid { grid-template-columns: repeat(6, 1fr); }
-    .modal-overlay { align-items: center; }
-    .modal-sheet { width: 500px; border-radius: 24px; margin: 0 auto; }
+    .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .levels-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+
+    .modal-overlay {
+        align-items: center;
+    }
+
+    .modal-sheet {
+        width: 500px;
+        border-radius: 24px;
+        margin: 0 auto;
+    }
 }
 
 @media (max-width: 400px) {
-    .levels-grid { grid-template-columns: repeat(2, 1fr); }
+    .levels-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
