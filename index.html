@@ -592,6 +592,17 @@
             box-shadow: 0 0 10px var(--accent-buy-dim);
         }
 
+        /* Ticket Badge */
+        .ticket-badge {
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
         .stat-card {
             transition: transform 0.3s;
         }
@@ -766,7 +777,9 @@
         let livePrices = {};
         let knownTrades = new Set();
         let firstLoad = true;
-        const ONE_HOUR = 3600000;
+        let lastMT5Update = 0;
+        const STALE_THRESHOLD = 45000; // 45 seconds
+        const DISPLAY_LIFETIME = 900000; // 15 minutes for closed trades
 
         // Sound
         function playSound() {
@@ -798,11 +811,12 @@
             const d = snap.val();
             if (!d) return;
             livePrices = d.prices || {};
+            lastMT5Update = Date.now();
 
             const container = document.getElementById('livePrices');
             container.innerHTML = '';
 
-            Object.entries(livePrices).forEach(([sym, price]) => {
+            Object.entries(livePrices).slice(0, 15).forEach(([sym, price]) => {
                 container.innerHTML += `
                     <div class="price-chip">
                         <span class="price-symbol">${sym}</span>
@@ -811,9 +825,26 @@
                 `;
             });
 
-            document.getElementById('updateTime').textContent = 'مباشر • ' + new Date().toLocaleTimeString('ar-EG');
+            updateStatus();
             updateCards();
         });
+
+        function updateStatus() {
+            const statusEl = document.getElementById('updateTime');
+            const dotEl = document.querySelector('.live-dot');
+            const diff = Date.now() - lastMT5Update;
+
+            if (diff > STALE_THRESHOLD) {
+                statusEl.innerHTML = '<span style="color: #ff4757">MT5 OFFLINE</span>';
+                dotEl.style.background = '#ff4757';
+                dotEl.style.animation = 'none';
+            } else {
+                statusEl.innerHTML = 'ONLINE • ' + new Date().toLocaleTimeString('ar-EG');
+                dotEl.style.background = '#00dc82';
+                dotEl.style.animation = 'heartbeat 1.5s infinite';
+            }
+        }
+        setInterval(updateStatus, 5000);
 
         function showDetails(t) {
             const body = document.getElementById('modalBody');
@@ -948,12 +979,14 @@
             const now = Date.now();
 
             const trades = Object.entries(allTrades)
-                .sort((a, b) => b[1].timestamp - a[1].timestamp)
-                .filter(([k, t]) => {
+                .map(([id, data]) => ({ id, ...data }))
+                .filter(t => {
                     const age = now - t.timestamp;
-                    const closed = ['tp', 'sl', 'closed'].includes(t.status);
-                    return !(closed && age > ONE_HOUR);
-                });
+                    const isClosed = ['tp', 'sl', 'closed'].includes(t.status);
+                    if (isClosed && age > DISPLAY_LIFETIME) return false;
+                    return true;
+                })
+                .sort((a, b) => b.timestamp - a.timestamp);
 
             if (trades.length === 0) {
                 container.innerHTML = `
@@ -1029,17 +1062,21 @@
                 const agePercent = Math.min((age / 60) * 100, 100);
 
                 container.innerHTML += `
-                    <div class="trade-card ${t.type.toLowerCase()} ${isNew && !firstLoad ? 'new' : ''}" onclick='showDetails(${JSON.stringify(t).replace(/'/g, "\\'")})'>
+                    <div class="trade-card ${t.type.toLowerCase()} ${isNew && !firstLoad ? 'new' : ''} ${isClosed ? 'closed-fade' : ''}" 
+                         onclick='showDetails(${JSON.stringify(t).replace(/'/g, "\\'")})'
+                         style="${isClosed ? 'opacity: 0.5; filter: grayscale(0.5);' : ''}">
                         <div class="card-header">
                             <div class="symbol-area">
                                 <div class="symbol-row">
                                     <span class="symbol-name">${t.symbol}</span>
                                     <span class="trade-type ${t.type.toLowerCase()}">${t.type}</span>
+                                    ${t.ticket ? `<span class="ticket-badge">#${t.ticket}</span>` : ''}
                                 </div>
                                 <div class="meta-row">
                                     <span class="meta-tag ${statusClass}">${statusText}</span>
                                     <span class="meta-tag">⏱ ${timeStr}</span>
                                     <span class="meta-tag">💪 ${t.confluence || '?'}/5</span>
+                                    ${t.volume ? `<span class="meta-tag">📊 ${t.volume} Lot</span>` : ''}
                                 </div>
                             </div>
                             <div class="current-pnl">
