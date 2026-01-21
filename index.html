@@ -910,8 +910,11 @@
 
             body.innerHTML = `
                 <div style="text-align: center; margin-bottom: 24px;">
-                    <div style="font-size: 32px; font-weight: 900; letter-spacing: -1px;">${t.symbol}</div>
-                    <div class="trade-type ${t.type.toLowerCase()}" style="display: inline-flex; margin-top: 8px; padding: 6px 20px;">
+                    <div style="font-size: 32px; font-weight: 900; letter-spacing: -1px; margin-bottom: 4px;">${t.symbol}</div>
+                    <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+                        الإشارة من فريم: <span style="color: var(--accent-blue); font-weight: 700;">${t.entryTF || t.entry_tf || 'N/A'}</span>
+                    </div>
+                    <div class="trade-type ${t.type.toLowerCase()}" style="display: inline-flex; padding: 6px 20px;">
                         ${t.type === 'BUY' ? '🔝 شراء' : '🔻 بيع'}
                     </div>
                 </div>
@@ -949,6 +952,14 @@
                     </div>
                 </div>
 
+                <div style="background: var(--bg-elevated); border-radius: 20px; padding: 20px; margin-bottom: 24px;">
+                    <div style="margin-bottom: 12px; font-weight: 700; font-size: 14px; opacity: 0.8;">🧱 تفاصيل التوافق (Confluence)</div>
+                    <div style="font-size: 13px; line-height: 1.6;">
+                        <span style="color: var(--text-muted)">الفريمات المتوافقة:</span><br>
+                        <span style="color: var(--accent-purple); font-weight: 700; font-family: monospace;">${t.agreeTFs || t.agree_tfs || '---'}</span>
+                    </div>
+                </div>
+
                 <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid var(--border);">
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span style="opacity: 0.6">قوة الإشارة:</span>
@@ -956,7 +967,7 @@
                             ${[1, 2, 3, 4, 5].map(i => `<div class="conf-dot ${i <= (t.confluence || 0) ? 'active' : ''}"></div>`).join('')}
                         </div>
                     </div>
-                    <div style="font-size: 12px; color: var(--text-muted)">منذ: ${timeStr}</div>
+                    <div style="font-size: 12px; color: var(--text-muted)">${timeStr}</div>
                 </div>
             `;
             document.getElementById('detailModal').classList.add('active');
@@ -1147,9 +1158,9 @@
                                 </div>
                                 <div class="meta-row">
                                     <span class="meta-tag ${statusClass}">${statusText}</span>
+                                    <span class="meta-tag" style="background: rgba(139, 92, 246, 0.1); color: #a78bfa;">${t.confluence}/5 TFs</span>
+                                    ${t.entryTF || t.entry_tf ? `<span class="meta-tag">⚡ ${t.entryTF || t.entry_tf}</span>` : ''}
                                     <span class="meta-tag">⏱ ${timeStr}</span>
-                                    <span class="meta-tag">💪 ${t.confluence || '?'}/5</span>
-                                    ${t.volume ? `<span class="meta-tag">📊 ${t.volume} Lot</span>` : ''}
                                 </div>
                             </div>
                             <div class="current-pnl">
