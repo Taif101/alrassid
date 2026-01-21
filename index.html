@@ -993,46 +993,7 @@
             container.prepend(entry);
         });
 
-        // History
-        db.ref('history').on('value', snap => {
-            const history = snap.val() || [];
-            updateHistory(history);
-        });
-
-        function updateHistory(history) {
-            const container = document.getElementById('historyContainer');
-            if (!history || history.length === 0) {
-                container.innerHTML = '<div class="empty-state"><div class="empty-text">لا يوجد نشاط مؤخرأ</div></div>';
-                return;
-            }
-
-            container.innerHTML = '';
-            history.slice(0, 10).forEach(h => {
-                const isRejected = h.status === 'rejected';
-                container.innerHTML += `
-                    <div class="trade-card" style="opacity: ${isRejected ? '0.6' : '1'}; border-right: 4px solid ${isRejected ? 'var(--accent-sell)' : 'var(--accent-buy)'}">
-                        <div class="card-header" style="padding: 12px 16px">
-                            <div class="symbol-area">
-                                <div class="symbol-row" style="margin-bottom: 2px">
-                                    <span class="symbol-name" style="font-size: 16px">${h.symbol}</span>
-                                    <span class="trade-type ${h.type.toLowerCase()}" style="padding: 2px 8px; font-size: 10px">${h.type}</span>
-                                </div>
-                                <div class="meta-row">
-                                    <span class="meta-tag" style="background: ${isRejected ? 'var(--accent-sell-dim)' : 'var(--accent-buy-dim)'}; color: ${isRejected ? 'var(--accent-sell)' : 'var(--accent-buy)'}">
-                                        ${isRejected ? '🛑 مرفوضة' : '✅ مقبولة'}
-                                    </span>
-                                    <span class="meta-tag">💪 ${h.confluence}/5</span>
-                                    ${h.rejection_reason ? `<span class="meta-tag" style="color: var(--text-muted)">${h.rejection_reason}</span>` : ''}
-                                </div>
-                            </div>
-                            <div style="font-size: 10px; color: var(--text-muted)">
-                                ${new Date(h.processed_at).toLocaleTimeString('ar-EG')}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
+        // History logic replaced by System Logs Engine
 
         // Cleanup old trades
         function cleanup() {
@@ -1087,10 +1048,10 @@
             let activeCount = 0;
             container.innerHTML = '';
 
-            trades.forEach(([key, t]) => {
-                const isNew = !knownTrades.has(key);
+            trades.forEach(t => {
+                const isNew = !knownTrades.has(t.id);
                 if (isNew) {
-                    knownTrades.add(key);
+                    knownTrades.add(t.id);
                     if (!firstLoad) playSound();
                 }
 
