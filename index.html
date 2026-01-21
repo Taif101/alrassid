@@ -699,7 +699,7 @@
                     <h1>الراصد PRO</h1>
                 </div>
             </div>
-            <div class="live-status">
+            <div class="live-status" style="cursor: pointer;" onclick="checkBankLink()">
                 <span class="live-dot"></span>
                 <span id="updateTime">جاري الاتصال...</span>
             </div>
@@ -778,8 +778,9 @@
         let knownTrades = new Set();
         let firstLoad = true;
         let lastMT5Update = 0;
-        const STALE_THRESHOLD = 45000; // 45 seconds
-        const DISPLAY_LIFETIME = 900000; // 15 minutes for closed trades
+        let bankConnected = 0;
+        const STALE_THRESHOLD = 45000;
+        const DISPLAY_LIFETIME = 900000;
 
         // Sound
         function playSound() {
@@ -812,6 +813,7 @@
             if (!d) return;
             livePrices = d.prices || {};
             lastMT5Update = Date.now();
+            bankConnected = d.bank_link || 0;
 
             const container = document.getElementById('livePrices');
             container.innerHTML = '';
@@ -839,10 +841,15 @@
                 dotEl.style.background = '#ff4757';
                 dotEl.style.animation = 'none';
             } else {
-                statusEl.innerHTML = 'ONLINE • ' + new Date().toLocaleTimeString('ar-EG');
-                dotEl.style.background = '#00dc82';
+                statusEl.innerHTML = (bankConnected ? 'ONLINE' : 'LINK ERROR') + ' • ' + new Date().toLocaleTimeString('ar-EG');
+                dotEl.style.background = bankConnected ? '#00dc82' : '#ffd700';
                 dotEl.style.animation = 'heartbeat 1.5s infinite';
             }
+        }
+
+        function checkBankLink() {
+            const status = bankConnected ? "✅ CONNECTION TO BANK IS ACTIVE (100%)" : "🛑 BANK CONNECTION: 0 (DISCONNECTED)";
+            alert(`--- Bank Connectivity ---\n\nStatus: ${status}\n\nLast Update: ${new Date(lastMT5Update).toLocaleTimeString('ar-EG')}`);
         }
         setInterval(updateStatus, 5000);
 
