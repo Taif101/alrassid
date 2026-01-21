@@ -687,6 +687,54 @@
             justify-content: center;
             cursor: pointer;
         }
+
+        /* Log Styles */
+        .log-container {
+            background: #000;
+            border-radius: 12px;
+            padding: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            margin-bottom: 40px;
+        }
+
+        .log-entry {
+            display: flex;
+            gap: 12px;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .log-time {
+            color: var(--text-muted);
+            min-width: 80px;
+        }
+
+        .log-source {
+            color: var(--accent-purple);
+            font-weight: 700;
+            min-width: 80px;
+        }
+
+        .log-msg {
+            color: #fff;
+            flex: 1;
+        }
+
+        .log-level-SUCCESS {
+            color: var(--accent-buy);
+        }
+
+        .log-level-ERROR {
+            color: var(--accent-sell);
+        }
+
+        .log-level-INFO {
+            color: var(--accent-blue);
+        }
     </style>
 </head>
 
@@ -751,16 +799,18 @@
             </div>
         </div>
 
-        <!-- Recent Activity -->
+        <!-- System Log Engine -->
         <div class="section-header" style="margin-top: 40px;">
-            <div class="section-title">🕒 سجل النشاط (ذكاء السيرفر)</div>
+            <div class="section-title">�️ محرك المراقبة (MT5 Engine Terminal)</div>
         </div>
-        <div id="historyContainer" class="trades-grid">
-            <!-- سيتم تعبئته برمجياً -->
+        <div class="log-container" id="systemLog">
+            <div class="log-entry">
+                <div class="log-msg">Initializing engine monitoring...</div>
+            </div>
         </div>
     </main>
 
-    <!-- Detail Modal -->
+    <!-- Modal remains same but I need to reposition it if I replace the whole block -->
     <div id="detailModal" class="modal">
         <div class="modal-content">
             <div class="modal-close" onclick="closeModal()">✕</div>
@@ -915,6 +965,22 @@
         function closeModal() {
             document.getElementById('detailModal').classList.remove('active');
         }
+
+        // System Logs Logic
+        db.ref('system_logs').limitToLast(30).on('child_added', snap => {
+            const log = snap.val();
+            const container = document.getElementById('systemLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+
+            const time = new Date(log.timestamp).toLocaleTimeString('ar-EG');
+            entry.innerHTML = `
+                <span class="log-time">[${time}]</span>
+                <span class="log-source">${log.source}</span>
+                <span class="log-msg log-level-${log.level}">${log.message}</span>
+            `;
+            container.prepend(entry);
+        });
 
         // History
         db.ref('history').on('value', snap => {
