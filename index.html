@@ -615,7 +615,15 @@
 
         // 4. Trades Connection
         db.ref('trades').on('value', snap => {
-            const allTrades = snap.val() || {};
+            // Direct Sync: Clear local state and take only what's in the server
+            allTrades = snap.val() || {};
+
+            // Cleanup tracking set to avoid ghost alerts
+            const currentKeys = new Set(Object.keys(allTrades));
+            knownTrades.forEach(id => {
+                if (!currentKeys.has(id)) knownTrades.delete(id);
+            });
+
             const container = document.getElementById('signalsContainer');
             const now = Date.now();
 
